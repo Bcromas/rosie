@@ -1,10 +1,13 @@
-# Files
+# File types
 *.csv
 *.tsv
 *.txt
 *.xls
 *.xlsx
 *.pdf
+
+# Specific files
+secrets.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
