@@ -2,7 +2,7 @@ import praw
 import pymysql.cursors
 
 #initialize global vars, set to blank
-CLIENT_ID = CLIENT_SECRET = USERNAME = PASSWORD = ''
+DB_PASSWORD = DB_USER = CLIENT_ID = CLIENT_SECRET = USERNAME = PASSWORD = ''
 
 #start getting global vars from secrets.txt
 with open("secrets.txt") as secrets:
@@ -16,28 +16,23 @@ with open("secrets.txt") as secrets:
             USERNAME = line_split[1].strip()
         elif line_split[0].strip().lower() == "password":
             PASSWORD = line_split[1].strip()
+        elif line_split[0].strip().lower() == "db_user":
+            DB_USER = line_split[1].strip()
+        elif line_split[0].strip().lower() == "db_password":
+            DB_PASSWORD = line_split[1].strip()
 #end getting global vars from secrets.txt
 
 # reddit = praw.Reddit(client_id = CLIENT_ID, client_secret = CLIENT_SECRET, password = PASSWORD,user_agent = f"rosie by {USERNAME}", username = USERNAME)
 
 # Connect to the database
-connection = pymysql.connect(host='localhost',
-                             user='bryan',
-                             password='1234',
-                             db='testdb',
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor)
+connection = pymysql.connect(host = 'localhost',
+                             user = DB_USER,
+                             password = DB_PASSWORD,
+                             db = 'testdb',
+                             charset = 'utf8mb4',
+                             cursorclass = pymysql.cursors.DictCursor)
 
 try:
-    with connection.cursor() as cursor:
-        # Create a new record
-        sql = "INSERT INTO `users` (`email`, `password`) VALUES (%s, %s)"
-        cursor.execute(sql, ('webmaster@python.org', 'very-secret'))
-
-    # connection is not autocommit by default. So you must commit to save
-    # your changes.
-    connection.commit()
-
     with connection.cursor() as cursor:
         # Read a single record
         sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
@@ -49,3 +44,5 @@ finally:
 
 if __name__ == "__main__":
     print("in main")
+
+# FROM CL, can log into DB using 'mysql -u bryan -p testdb'
