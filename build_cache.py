@@ -82,7 +82,7 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Subreddit(
-            id VARCHAR(100) NOT NULL,
+            id VARCHAR(100) PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             display_name VARCHAR(100) NOT NULL,
             subscribers INT NOT NULL,
@@ -99,9 +99,9 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Submission(
-            id VARCHAR(100) NOT NULL,
-            title VARCHAR(100),
-            author_name VARCHAR(100)
+            id VARCHAR(100) PRIMARY KEY,
+            title VARCHAR(100) NOT NULL,
+            author_name VARCHAR(100) NOT NULL
         );
         """
         cursor.execute(statement)
@@ -114,9 +114,9 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Comment(
-            id VARCHAR(100) NOT NULL,
-            commentor_id VARCHAR(100),
-            body_text VARCHAR(500)
+            id VARCHAR(100) PRIMARY KEY,
+            commentor_id VARCHAR(100) NOT NULL,
+            body_text VARCHAR(500) NOT NULL
         );
         """
         cursor.execute(statement)
