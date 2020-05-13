@@ -3,4 +3,4 @@
 
 ## A project focused on NLP and chatbots. Details and code to be added as possible.
 
-Image from Toby Silver on Flickr(https://flickr.com/photos/tobysilver/164954797)
+Image from [Toby Silver on Flickr](https://flickr.com/photos/tobysilver/164954797)
