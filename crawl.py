@@ -55,7 +55,7 @@ def check_subreddit(name):
     Check whether a Subreddit already exists in DB or not.
 
     Args:
-        name - a string representing the name of a Subreddit
+        name - a string indicating the likely display_name of a Subreddit.
 
     Returns:
         Dictionary containing key-value pairs for Subreddit id and Subreddit display_name in DB.
@@ -74,19 +74,23 @@ def check_subreddit(name):
     except Exception as e:
         return {}
 
-def insert_subreddits(some_subreddits):
+def insert_subreddits(these_subreddits):
     """
     Insert Subreddits & details into DB.
 
     Args:
-        some_subreddits - list of strings representing a Subreddit name.
+        these_subreddits - list of strings representing a Subreddit name.
 
     Returns:
-        None
+        result - a list of Subreddit ids in the DB.
     """
-    for entry in some_subreddits:
-        if check_subreddit(entry):
-            print(f"Subreddit '{entry}' already in DB.")
+    result = []
+
+    for entry in these_subreddits:
+        found_subreddit = check_subreddit(entry)
+        if found_subreddit:
+            print(f"Subreddit '{entry}' already in DB ...")
+            result.append(found_subreddit["display_name"])
             continue
         else:
             try:
@@ -98,9 +102,26 @@ def insert_subreddits(some_subreddits):
                 statement += "VALUES (%s,%s,%s,%s,%s)"
                 cursor.execute(statement, insertion)
                 connection.commit()
+
+                result.append(subreddit.display_name)
             except Exception as e:
                 print(f"Error in insert_subreddits: {e}.")
                 connection.close()
+
+    return result
+
+def get_submissions(these_names):
+    for entry in these_names:
+        # get latest Submissions from Subreddit
+        # check if Submissions are in DB already
+        # if already in DB then capture that & continue
+        # else add to DB, capture that, & continue
+        print(entry)
+        this = REDDIT.subreddit(entry).new()
+        count = 0
+        for i in this[1]: #TODO get newest Submissions & check if they already exist in DB or not
+            count += 1
+        print(count)
 
 def main():
     """
@@ -112,8 +133,11 @@ def main():
     Returns:
         None
     """
-    some_subreddits = ["worldnews", "offbeat", "news", "AskReddit"]
-    insert_subreddits(some_subreddits)
+    these_subreddits = ["worldnews", "offbeat", "news", "AskReddit"]
+    subreddit_names = insert_subreddits(these_subreddits)
+
+    # gather newest Submissions from Subreddits
+    get_submissions(subreddit_names)
 
 if __name__ == "__main__":
     main()
