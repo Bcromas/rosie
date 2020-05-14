@@ -1,19 +1,7 @@
+from secrets import DB_PASSWORD, DB_USER
 import pymysql.cursors
 
-#initialize global vars, set to blank
-DB_PASSWORD = DB_USER = ''
-
 DBNAME = 'testdb'
-
-#start getting global vars from secrets.txt
-with open("secrets.txt") as secrets:
-    for line in secrets:
-        line_split = line.split("=")
-        if line_split[0].strip().lower() == "db_user":
-            DB_USER = line_split[1].strip()
-        elif line_split[0].strip().lower() == "db_password":
-            DB_PASSWORD = line_split[1].strip()
-#end getting global vars from secrets.txt
 
 def db_setup():
     """
@@ -97,11 +85,16 @@ def db_setup():
 
     # Create Submission table
     try:
+        # statement = """
+        # CREATE TABLE Submission(
+        #     id VARCHAR(100) PRIMARY KEY,
+        #     title VARCHAR(100) NOT NULL,
+        #     author_name VARCHAR(100) NOT NULL
+        # );
+        # """
         statement = """
         CREATE TABLE Submission(
-            id VARCHAR(100) PRIMARY KEY,
-            title VARCHAR(100) NOT NULL,
-            author_name VARCHAR(100) NOT NULL
+            id VARCHAR(100) PRIMARY KEY
         );
         """
         cursor.execute(statement)

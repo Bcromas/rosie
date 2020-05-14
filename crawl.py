@@ -1,26 +1,6 @@
+from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD
 import praw
 import pymysql.cursors
-
-#initialize global vars, set to blank
-DB_PASSWORD = DB_USER = CLIENT_ID = CLIENT_SECRET = USERNAME = PASSWORD = ''
-
-#start getting global vars from secrets.txt
-with open("secrets.txt") as secrets:
-    for line in secrets:
-        line_split = line.split("=")
-        if line_split[0].strip().lower() == "client_id":
-            CLIENT_ID = line_split[1].strip()
-        elif line_split[0].strip().lower() == "client_secret":
-            CLIENT_SECRET = line_split[1].strip()
-        elif line_split[0].strip().lower() == "username":
-            USERNAME = line_split[1].strip()
-        elif line_split[0].strip().lower() == "password":
-            PASSWORD = line_split[1].strip()
-        elif line_split[0].strip().lower() == "db_user":
-            DB_USER = line_split[1].strip()
-        elif line_split[0].strip().lower() == "db_password":
-            DB_PASSWORD = line_split[1].strip()
-#end getting global vars from secrets.txt
 
 REDDIT = praw.Reddit(
     client_id = CLIENT_ID,
@@ -82,7 +62,7 @@ def insert_subreddits(these_subreddits):
         these_subreddits - list of strings representing a Subreddit name.
 
     Returns:
-        result - a list of Subreddit ids in the DB.
+        result - a list of 2-tuples containing Subreddits display_names & ids in the DB.
     """
     result = []
 
@@ -90,7 +70,7 @@ def insert_subreddits(these_subreddits):
         found_subreddit = check_subreddit(entry)
         if found_subreddit:
             print(f"Subreddit '{entry}' already in DB ...")
-            result.append(found_subreddit["display_name"])
+            result.append((found_subreddit["display_name"], found_subreddit["id"]))
             continue
         else:
             try:
@@ -103,25 +83,71 @@ def insert_subreddits(these_subreddits):
                 cursor.execute(statement, insertion)
                 connection.commit()
 
-                result.append(subreddit.display_name)
+                result.append((subreddit.display_name, subreddit.id))
             except Exception as e:
                 print(f"Error in insert_subreddits: {e}.")
                 connection.close()
 
     return result
 
-def get_submissions(these_names):
-    for entry in these_names:
+def check_submission(this_submission):
+    """
+    Check whether a Submissions already exists in DB or not.
+
+    Args:
+        this_submission - a string indicating the Submission id.
+
+    Returns:
+        Boolean, True if Submission in DB False otherwise.
+
+    """
+    try:
+        connection = make_connection()
+        cursor = connection.cursor()
+        statement = "SELECT * "
+        statement += "FROM Submission "
+        statement += f"WHERE id = '{this_submission}'"
+        cursor.execute(statement)
+        result = cursor.fetchall()
+        if result:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error in check_submission: {e}")
+        return False
+
+def insert_submissions(these_names):
+    """
+    Check if Submissions exist in DB & add them if they don't.
+
+    Args:
+        these_names - a list of 2-tuples containing a Subreddit name & id.
+
+    Returns:
+
+    """
+    for this_name, this_id in these_names:
         # get latest Submissions from Subreddit
         # check if Submissions are in DB already
         # if already in DB then capture that & continue
         # else add to DB, capture that, & continue
-        print(entry)
-        this = REDDIT.subreddit(entry).new()
-        count = 0
-        for i in this[1]: #TODO get newest Submissions & check if they already exist in DB or not
-            count += 1
-        print(count)
+
+        these_submissions = REDDIT.subreddit(this_name).new()
+        print(f"Updating Submissions in DB for {this_name} ...")
+        
+        for this_id in these_submissions:
+            if check_submission(this_id):
+                continue
+            else:
+                #TODO make a call for the Submission itself & get details I want (e.g. author; see: https://praw.readthedocs.io/en/latest/code_overview/models/submission.html)
+                insertion = (str(this_id))
+                connection = make_connection()
+                cursor = connection.cursor()
+                statement = "INSERT INTO Submission "
+                statement += "VALUES (%s);"
+                cursor.execute(statement, insertion)
+                connection.commit()
 
 def main():
     """
@@ -134,10 +160,12 @@ def main():
         None
     """
     these_subreddits = ["worldnews", "offbeat", "news", "AskReddit"]
-    subreddit_names = insert_subreddits(these_subreddits)
+    # these_subreddits = ["worldnews"]
+
+    subreddit_names_ids = insert_subreddits(these_subreddits)
 
     # gather newest Submissions from Subreddits
-    get_submissions(subreddit_names)
+    insert_submissions(subreddit_names_ids)
 
 if __name__ == "__main__":
     main()
