@@ -1,4 +1,7 @@
-# Files
+# Secrets file
+secrets.*
+
+# File types
 *.csv
 *.tsv
 *.txt
