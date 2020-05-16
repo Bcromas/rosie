@@ -1,4 +1,4 @@
-from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD
+from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD, HOST, DB, CHARSET, USER_AGENT
 import praw
 import pymysql.cursors
 import datetime
@@ -7,9 +7,25 @@ REDDIT = praw.Reddit(
     client_id = CLIENT_ID,
     client_secret = CLIENT_SECRET,
     password = PASSWORD,
-    user_agent = f"rosie by {USERNAME}", 
+    user_agent = f"{USER_AGENT} by {USERNAME}", 
     username = USERNAME
     )
+
+def get_subreddits(this_file):
+    """
+    Open a CSV file, read in Subreddits, and save them as a list.
+
+    Args:
+        this_file - the name of a CSV file containing the names of Subreddits.
+
+    Returns:
+        A list of strings representing the Subreddit names.
+
+    """
+    with open(this_file) as f:
+        content = f.read().split(",")
+    
+    return content
 
 def make_connection():
     """
@@ -22,11 +38,11 @@ def make_connection():
         A connection instance.
 
     """
-    this_connection = pymysql.connect(host = 'localhost',
+    this_connection = pymysql.connect(host = HOST,
                                         user = DB_USER,
                                         password = DB_PASSWORD,
-                                        db = 'testdb',
-                                        charset = 'utf8mb4',
+                                        db = DB,
+                                        charset = CHARSET,
                                         cursorclass = pymysql.cursors.DictCursor)
     
     return this_connection
@@ -165,8 +181,7 @@ def main():
     Returns:
         None
     """
-    these_subreddits = ["worldnews", "offbeat", "news", "AskReddit"]
-    # these_subreddits = ["worldnews"]
+    these_subreddits = get_subreddits("subreddits.csv")
 
     subreddit_names_ids = insert_subreddits(these_subreddits)
 
