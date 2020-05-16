@@ -1,6 +1,7 @@
 from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD
 import praw
 import pymysql.cursors
+import datetime
 
 REDDIT = praw.Reddit(
     client_id = CLIENT_ID,
@@ -75,11 +76,14 @@ def insert_subreddits(these_subreddits):
         else:
             try:
                 subreddit = REDDIT.subreddit(entry)
-                insertion = (subreddit.id, subreddit.name, subreddit.display_name, subreddit.subscribers, subreddit.user_is_banned)
+                insertion = (
+                    None, subreddit.id, subreddit.name, 
+                    subreddit.display_name, subreddit.subscribers, subreddit.user_is_banned
+                    )
                 connection = make_connection()
                 cursor = connection.cursor()
                 statement = "INSERT INTO Subreddit "
-                statement += "VALUES (%s,%s,%s,%s,%s)"
+                statement += "VALUES (%s, %s, %s, %s, %s, %s)"
                 cursor.execute(statement, insertion)
                 connection.commit()
 
@@ -128,24 +132,26 @@ def insert_submissions(these_names):
 
     """
     for this_name, this_id in these_names:
-        # get latest Submissions from Subreddit
-        # check if Submissions are in DB already
-        # if already in DB then capture that & continue
-        # else add to DB, capture that, & continue
-
         these_submissions = REDDIT.subreddit(this_name).new()
         print(f"Updating Submissions in DB for {this_name} ...")
         
         for this_id in these_submissions:
             if check_submission(this_id):
-                continue
+                continue #! possibly too simplistic of a check, may want to update using timestamp &| updating columns that have changed
             else:
-                #TODO make a call for the Submission itself & get details I want (e.g. author; see: https://praw.readthedocs.io/en/latest/code_overview/models/submission.html)
-                insertion = (str(this_id))
+                this_submission = REDDIT.submission(id = this_id)
+
+                insertion = (
+                    None, str(this_id), str(this_submission.author), 
+                    "CREATED_UTC", this_submission.is_original_content, this_submission.locked, 
+                    this_submission.name, this_submission.title[:100], this_submission.num_comments, 
+                    this_submission.score, this_submission.permalink, datetime.datetime.utcnow()
+                    )
+
                 connection = make_connection()
                 cursor = connection.cursor()
                 statement = "INSERT INTO Submission "
-                statement += "VALUES (%s);"
+                statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 cursor.execute(statement, insertion)
                 connection.commit()
 

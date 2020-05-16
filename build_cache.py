@@ -70,6 +70,7 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Subreddit(
+            db_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             display_name VARCHAR(100) NOT NULL,
@@ -87,14 +88,34 @@ def db_setup():
     try:
         # statement = """
         # CREATE TABLE Submission(
+        #     db_ts TIMESTAMP,
         #     id VARCHAR(100) PRIMARY KEY,
-        #     title VARCHAR(100) NOT NULL,
-        #     author_name VARCHAR(100) NOT NULL
+        #     author VARCHAR(100) NOT NULL,
+        #     created_utc TIMESTAMP NOT NULL,
+        #     is_original_content BOOLEAN NOT NULL,
+        #     locked BOOLEAN NOT NULL,
+        #     name VARCHAR(100),
+        #     title VARCHAR(100),
+        #     num_comments INT NOT NULL,
+        #     score INT NOT NULL,
+        #     permalink VARCHAR(100),
+        #     retrieved TIMESTAMP NOT NULL
         # );
         # """
         statement = """
         CREATE TABLE Submission(
-            id VARCHAR(100) PRIMARY KEY
+            db_ts TIMESTAMP,
+            id VARCHAR(100) PRIMARY KEY,
+            author VARCHAR(100) NOT NULL,
+            created_utc VARCHAR(100) NOT NULL,
+            is_original_content BOOLEAN NOT NULL,
+            locked BOOLEAN NOT NULL,
+            name VARCHAR(100),
+            title VARCHAR(100),
+            num_comments INT NOT NULL,
+            score INT NOT NULL,
+            permalink VARCHAR(100),
+            retrieved TIMESTAMP NOT NULL
         );
         """
         cursor.execute(statement)
