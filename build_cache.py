@@ -66,11 +66,10 @@ def db_setup():
     ### CREATE TABLES ###
 
     # Create Subreddit table
-    # Can view columns in CL using 'SHOW COLUMNS FROM Subreddit;'
     try:
         statement = """
         CREATE TABLE Subreddit(
-            db_ts TIMESTAMP,
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             display_name VARCHAR(100) NOT NULL,
@@ -86,26 +85,12 @@ def db_setup():
 
     # Create Submission table
     try:
-        # statement = """
-        # CREATE TABLE Submission(
-        #     db_ts TIMESTAMP,
-        #     id VARCHAR(100) PRIMARY KEY,
-        #     author VARCHAR(100) NOT NULL,
-        #     created_utc TIMESTAMP NOT NULL,
-        #     is_original_content BOOLEAN NOT NULL,
-        #     locked BOOLEAN NOT NULL,
-        #     name VARCHAR(100),
-        #     title VARCHAR(100),
-        #     num_comments INT NOT NULL,
-        #     score INT NOT NULL,
-        #     permalink VARCHAR(100),
-        #     retrieved TIMESTAMP NOT NULL
-        # );
-        # """
         statement = """
+
         CREATE TABLE Submission(
-            db_ts TIMESTAMP,
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
+            subreddit_id VARCHAR(100) NOT NUll,
             author VARCHAR(100) NOT NULL,
             created_utc VARCHAR(100) NOT NULL,
             is_original_content BOOLEAN NOT NULL,
@@ -114,7 +99,7 @@ def db_setup():
             title VARCHAR(100),
             num_comments INT NOT NULL,
             score INT NOT NULL,
-            permalink VARCHAR(100),
+            permalink VARCHAR(100) NOT NULL,
             retrieved TIMESTAMP NOT NULL
         );
         """
@@ -128,11 +113,17 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Comment(
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
-            commentor_id VARCHAR(100) NOT NULL,
-            body_text VARCHAR(500) NOT NULL
+            link_id VARCHAR(100) NOT NULL,
+            author VARCHAR(100) NOT NULL,
+            body BLOB NOT NULL,
+            score INT NOT NULL,
+            permalink VARCHAR(100) NOT NULL,
+            retrieved TIMESTAMP NOT NULL
         );
         """
+        #* link_id = submission_id
         cursor.execute(statement)
         connection.commit()
     except Exception as e:

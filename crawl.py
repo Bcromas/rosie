@@ -104,6 +104,7 @@ def insert_subreddits(these_subreddits):
                 connection.commit()
 
                 result.append((subreddit.display_name, subreddit.id))
+                connection.close()
             except Exception as e:
                 print(f"Error in insert_subreddits: {e}.")
                 connection.close()
@@ -129,47 +130,138 @@ def check_submission(this_submission):
         statement += f"WHERE id = '{this_submission}'"
         cursor.execute(statement)
         result = cursor.fetchall()
+        connection.close()
         if result:
             return True
         else:
             return False
     except Exception as e:
         print(f"Error in check_submission: {e}")
+        connection.close()
         return False
 
 def insert_submissions(these_names):
     """
-    Check if Submissions exist in DB & add them if they don't.
+    Check if a Subreddit's Submissions exist in the DB & add them if they don't.
 
     Args:
         these_names - a list of 2-tuples containing a Subreddit name & id.
 
     Returns:
+        result - a list of Submission ids in the DB.
 
     """
+    result = []
+
     for this_name, this_id in these_names:
         these_submissions = REDDIT.subreddit(this_name).new()
         print(f"Updating Submissions in DB for {this_name} ...")
         
         for this_id in these_submissions:
             if check_submission(this_id):
+                result.append(str(this_id))
                 continue #! possibly too simplistic of a check, may want to update using timestamp &| updating columns that have changed
             else:
-                this_submission = REDDIT.submission(id = this_id)
+                try: 
+                    this_submission = REDDIT.submission(id = this_id)
 
-                insertion = (
-                    None, str(this_id), str(this_submission.author), 
-                    "CREATED_UTC", this_submission.is_original_content, this_submission.locked, 
-                    this_submission.name, this_submission.title[:100], this_submission.num_comments, 
-                    this_submission.score, this_submission.permalink, datetime.datetime.utcnow()
+                    insertion = (
+                        None, str(this_id), this_name, 
+                        str(this_submission.author), "CREATED_UTC", this_submission.is_original_content,
+                        this_submission.locked, this_submission.name, this_submission.title[:100],
+                        this_submission.num_comments, this_submission.score, this_submission.permalink, 
+                        datetime.datetime.utcnow()
+                    ) #TODO fix insert for created_UTC
+
+                    connection = make_connection()
+                    cursor = connection.cursor()
+                    statement = "INSERT INTO Submission "
+                    statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    cursor.execute(statement, insertion)
+                    connection.commit()
+
+                    result.append(str(this_id))
+                    connection.close()
+
+                except Exception as e:
+                    print(f"Error in insert_submissions: {e}.")
+                    connection.close()
+    return result
+
+def check_comment(this_comment):
+    """
+    Check whether a Comment already exists in DB or not.
+
+    Args:
+        this_comment - a string indicating the Comment id.
+
+    Returns:
+        Boolean, True if Comment in DB False otherwise.
+
+    """
+    try:
+        connection = make_connection()
+        cursor = connection.cursor()
+        statement = "SELECT * "
+        statement += "FROM Comment "
+        statement += f"WHERE id = '{this_comment}'"
+        cursor.execute(statement)
+        result = cursor.fetchall()
+        if result:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error in check_comment: {e}")
+        return False
+
+def insert_comments():
+    """
+    Checks all Submissions in DB to see if their Comments are in DB or not.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+    # get list of all Submissions in DB
+    connection = make_connection()
+    cursor = connection.cursor()
+    statement = "SELECT DISTINCT id "
+    statement += "FROM Submission "
+    cursor.execute(statement)
+    result = cursor.fetchall()
+    connection.close()
+
+    # for each Submission make a call to get all Comments
+    for submission in result:
+        this_submission = REDDIT.submission(id = submission["id"])
+        this_comment_forest = this_submission.comments #TODO need to handle instance of MoreComments
+        for comment in this_comment_forest:
+            # check if comment.id is in DB, if not add it
+            if check_comment(comment.id):
+                continue #! possibly too simplistic of a check, may want to update using timestamp &| updating columns that have changed
+            else:
+                try:
+                    insertion = (
+                        None, comment.id, comment.link_id, 
+                        str(comment.author), comment.body, comment.score,
+                        comment.permalink, datetime.datetime.utcnow()   
                     )
 
-                connection = make_connection()
-                cursor = connection.cursor()
-                statement = "INSERT INTO Submission "
-                statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                cursor.execute(statement, insertion)
-                connection.commit()
+                    connection = make_connection()
+                    cursor = connection.cursor()
+                    statement = "INSERT INTO Comment "
+                    statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+                    cursor.execute(statement, insertion)
+                    connection.commit()
+                    connection.close()
+
+                except Exception as e:
+                    print(f"Error in insert_comments: {e}")
+                    connection.close()
 
 def main():
     """
@@ -186,7 +278,10 @@ def main():
     subreddit_names_ids = insert_subreddits(these_subreddits)
 
     # gather newest Submissions from Subreddits
-    insert_submissions(subreddit_names_ids)
+    submission_ids = insert_submissions(subreddit_names_ids)
+
+    #TODO make call to insert_comments
+    insert_comments()
 
 if __name__ == "__main__":
     main()
