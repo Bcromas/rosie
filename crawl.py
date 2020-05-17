@@ -1,7 +1,7 @@
-from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD, HOST, DB, CHARSET, USER_AGENT
+import datetime
 import praw
 import pymysql.cursors
-import datetime
+from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD, HOST, DB, CHARSET, USER_AGENT
 
 REDDIT = praw.Reddit(
     client_id = CLIENT_ID,
@@ -239,6 +239,7 @@ def insert_comments():
     for submission in result:
         this_submission = REDDIT.submission(id = submission["id"])
         this_comment_forest = this_submission.comments #TODO need to handle instance of MoreComments
+        this_comment_forest.replace_more(limit = None)
         for comment in this_comment_forest:
             # check if comment.id is in DB, if not add it
             if check_comment(comment.id):
@@ -285,5 +286,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-# FROM CL, can log into DB using 'mysql -u bryan -p testdb'
