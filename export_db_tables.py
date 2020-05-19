@@ -1,3 +1,5 @@
+# Utility file to export tables from DB to CSV files
+
 import pandas as pd
 import pymysql.cursors
 from secrets import DB_PASSWORD, DB_USER, CLIENT_ID, CLIENT_SECRET, USERNAME, PASSWORD, HOST, DB, CHARSET, USER_AGENT
@@ -56,6 +58,7 @@ this_connection.close()
 
 comment_df = pd.DataFrame.from_records(result)
 # print(comment_df.shape)
+comment_df.to_csv("comments.csv")
 
 # # create three DFs that join related Subreddits-Submissions-Comments
 # print(comment_df.columns)
@@ -109,4 +112,4 @@ for i in comment_df["body_3gram"]:
 # | fqy3ptb |
 # | fqy3qh4 |
 # | fqy3r7l |
-print(comment_df[(comment_df["id"]=="fqovhw6")|(comment_df["id"]=="fqvygmm")]["permalink"])
+# print(comment_df[(comment_df["id"]=="fqovhw6")|(comment_df["id"]=="fqvygmm")]["permalink"])
