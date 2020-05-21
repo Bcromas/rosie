@@ -115,6 +115,7 @@ def db_setup():
             insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
             link_id VARCHAR(100) NOT NULL,
+            subreddit_name VARCHAR(100) NOT NULL,
             author VARCHAR(100) NOT NULL,
             body BLOB NOT NULL,
             score INT NOT NULL,

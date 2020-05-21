@@ -238,7 +238,7 @@ def insert_comments():
     # for each Submission make a call to get all Comments
     for submission in result:
         this_submission = REDDIT.submission(id = submission["id"])
-        this_comment_forest = this_submission.comments #TODO need to handle instance of MoreComments
+        this_comment_forest = this_submission.comments
         this_comment_forest.replace_more(limit = None)
         for comment in this_comment_forest:
             # check if comment.id is in DB, if not add it
@@ -247,15 +247,15 @@ def insert_comments():
             else:
                 try:
                     insertion = (
-                        None, comment.id, comment.link_id, 
-                        str(comment.author), comment.body, comment.score,
-                        comment.permalink, datetime.datetime.utcnow()   
+                        None, comment.id, comment.link_id,
+                        comment.subreddit.name, str(comment.author), comment.body,
+                        comment.score, comment.permalink, datetime.datetime.utcnow()   
                     )
 
                     connection = make_connection()
                     cursor = connection.cursor()
                     statement = "INSERT INTO Comment "
-                    statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+                    statement += "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                     cursor.execute(statement, insertion)
                     connection.commit()
                     connection.close()
@@ -274,7 +274,7 @@ def main():
     Returns:
         None
     """
-    these_subreddits = get_subreddits("subreddits.csv")
+    these_subreddits = get_subreddits("data/subreddits.csv")
 
     subreddit_names_ids = insert_subreddits(these_subreddits)
 
