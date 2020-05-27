@@ -58,7 +58,7 @@ this_connection.close()
 
 comment_df = pd.DataFrame.from_records(result)
 # print(comment_df.shape)
-comment_df.to_csv("comments.csv")
+comment_df.to_csv("data/comments.csv")
 
 # # create three DFs that join related Subreddits-Submissions-Comments
 # print(comment_df.columns)
@@ -69,34 +69,34 @@ comment_df.to_csv("comments.csv")
 
 # # pick a DF & perform some EDA: counts of Submissions & Comments; counts of authors; popular n-grams (1 to 3) used in titles & body; tf-idf for titles & bodies(?)
 
-#######################
-### EDA w/ Comments ###
+# #######################
+# ### EDA w/ Comments ###
 
-#* columns are 'insert_update_ts', 'id', 'link_id', 'author', 'body', 'score','permalink', 'retrieved'
-# print(comment_df.columns)
+# #* columns are 'insert_update_ts', 'id', 'link_id', 'author', 'body', 'score','permalink', 'retrieved'
+# # print(comment_df.columns)
 
-#* body_len has mean of 149 but large std dev of 234
-comment_df["body_len"] = comment_df.apply(lambda x: len(x["body"]), axis = 1)
-# print(comment_df["body_len"].describe())
+# #* body_len has mean of 149 but large std dev of 234
+# comment_df["body_len"] = comment_df.apply(lambda x: len(x["body"]), axis = 1)
+# # print(comment_df["body_len"].describe())
 
-from nltk import ngrams
+# from nltk import ngrams
 
-comment_df["body_2gram"] = comment_df.apply(lambda x: [i for i in ngrams(x["body"].lower().split(),2)], axis = 1)
-# print(comment_df[["body","body_2gram"]].sample(3))
+# comment_df["body_2gram"] = comment_df.apply(lambda x: [i for i in ngrams(x["body"].lower().split(),2)], axis = 1)
+# # print(comment_df[["body","body_2gram"]].sample(3))
 
-comment_df["body_3gram"] = comment_df.apply(lambda x: [i for i in ngrams(x["body"].lower().split(),3)], axis = 1)
-# print(comment_df[["body","body_3gram"]].sample(3))
+# comment_df["body_3gram"] = comment_df.apply(lambda x: [i for i in ngrams(x["body"].lower().split(),3)], axis = 1)
+# # print(comment_df[["body","body_3gram"]].sample(3))
 
-import collections
-counter_2gram = collections.Counter()
-for i in comment_df["body_2gram"]:
-    counter_2gram.update(i)
-# print(counter_2gram.most_common(10))
+# import collections
+# counter_2gram = collections.Counter()
+# for i in comment_df["body_2gram"]:
+#     counter_2gram.update(i)
+# # print(counter_2gram.most_common(10))
 
-counter_3gram = collections.Counter()
-for i in comment_df["body_3gram"]:
-    counter_3gram.update(i)
-# print(counter_3gram.most_common(10))
+# counter_3gram = collections.Counter()
+# for i in comment_df["body_3gram"]:
+#     counter_3gram.update(i)
+# # print(counter_3gram.most_common(10))
 
 
 #* other Comments featuring "the best tl;dr"

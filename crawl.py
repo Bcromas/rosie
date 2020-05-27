@@ -248,7 +248,7 @@ def insert_comments():
                 try:
                     insertion = (
                         None, comment.id, comment.link_id,
-                        comment.subreddit.name, str(comment.author), comment.body,
+                        comment.subreddit.display_name, str(comment.author), comment.body,
                         comment.score, comment.permalink, datetime.datetime.utcnow()   
                     )
 
@@ -281,7 +281,6 @@ def main():
     # gather newest Submissions from Subreddits
     submission_ids = insert_submissions(subreddit_names_ids)
 
-    #TODO make call to insert_comments
     insert_comments()
 
 if __name__ == "__main__":
