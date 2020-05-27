@@ -1,25 +1,24 @@
-from secrets import DB_PASSWORD, DB_USER
 import pymysql.cursors
-
-DBNAME = 'testdb'
+from secrets import HOST, DB_USER, DB_PASSWORD, DB, CHARSET
 
 def db_setup():
     """
-    Drops and creates the following tables: Subreddit, Submission, Comment.
+    Drops and creates the following tables: Subreddit, Submission, and Comment.
 
     Args:
         None
 
     Returns:
         None
+
     """
     # Connect to the database
     try:
-        connection = pymysql.connect(host = 'localhost',
+        connection = pymysql.connect(host = HOST,
                                     user = DB_USER,
                                     password = DB_PASSWORD,
-                                    db = DBNAME,
-                                    charset = 'utf8mb4',
+                                    db = DB,
+                                    charset = CHARSET,
                                     cursorclass = pymysql.cursors.DictCursor)
         cursor = connection.cursor()
     except Exception as e:
@@ -116,6 +115,7 @@ def db_setup():
             insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
             link_id VARCHAR(100) NOT NULL,
+            subreddit_name VARCHAR(100) NOT NULL,
             author VARCHAR(100) NOT NULL,
             body BLOB NOT NULL,
             score INT NOT NULL,
@@ -132,5 +132,3 @@ def db_setup():
 
 if __name__ == "__main__":
     db_setup()
-
-# FROM CL, can log into DB using 'mysql -u bryan -p testdb'
