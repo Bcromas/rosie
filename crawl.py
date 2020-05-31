@@ -23,7 +23,7 @@ def get_subreddits(this_file):
 
     """
     with open(this_file) as f:
-        content = f.read().split(",")
+        content = f.read().strip().split(",")
     
     return content
 
@@ -38,14 +38,18 @@ def make_connection():
         A connection instance.
 
     """
-    this_connection = pymysql.connect(host = HOST,
-                                        user = DB_USER,
-                                        password = DB_PASSWORD,
-                                        db = DB,
-                                        charset = CHARSET,
-                                        cursorclass = pymysql.cursors.DictCursor)
-    
-    return this_connection
+    try:
+        this_connection = pymysql.connect(host = HOST,
+                                    user = DB_USER,
+                                    password = DB_PASSWORD,
+                                    db = DB,
+                                    charset = CHARSET,
+                                    cursorclass = pymysql.cursors.DictCursor)
+        return this_connection
+    except Exception as e:
+        print(f"Error in make_connection: {e}")
+        return None
+
 
 def check_subreddit(name):
     """
@@ -86,10 +90,11 @@ def insert_subreddits(these_subreddits):
     for entry in these_subreddits:
         found_subreddit = check_subreddit(entry)
         if found_subreddit:
-            print(f"Subreddit '{entry}' already in DB ...")
+            print(f"Subreddit already in DB: {entry}")
             result.append((found_subreddit["display_name"], found_subreddit["id"]))
             continue
         else:
+            print(f"Getting Subreddit details for '{entry}'...")
             try:
                 subreddit = REDDIT.subreddit(entry)
                 insertion = (
@@ -155,7 +160,7 @@ def insert_submissions(these_names):
 
     for this_name, this_id in these_names:
         these_submissions = REDDIT.subreddit(this_name).new()
-        print(f"Updating Submissions in DB for {this_name} ...")
+        print(f"Updating Submissions in DB for {this_name}...")
         
         for this_id in these_submissions:
             if check_submission(this_id):
@@ -245,6 +250,7 @@ def insert_comments():
             if check_comment(comment.id):
                 continue #! possibly too simplistic of a check, may want to update using timestamp &| updating columns that have changed
             else:
+                print(f"Adding Comment '{comment.id}'...")
                 try:
                     insertion = (
                         None, comment.id, comment.link_id,
