@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # bert model
 bert/
+=======
+# Directories
+/bert
+>>>>>>> 3744c38c414ba3bcbb430e996080ea1c36dc44a3
 
 # Secrets file
 secrets.*

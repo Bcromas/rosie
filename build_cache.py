@@ -1,37 +1,24 @@
 import pymysql.cursors
-
-#initialize global vars, set to blank
-DB_PASSWORD = DB_USER = ''
-
-DBNAME = 'testdb'
-
-#start getting global vars from secrets.txt
-with open("secrets.txt") as secrets:
-    for line in secrets:
-        line_split = line.split("=")
-        if line_split[0].strip().lower() == "db_user":
-            DB_USER = line_split[1].strip()
-        elif line_split[0].strip().lower() == "db_password":
-            DB_PASSWORD = line_split[1].strip()
-#end getting global vars from secrets.txt
+from secrets import HOST, DB_USER, DB_PASSWORD, DB, CHARSET
 
 def db_setup():
     """
-    Drops and creates the following tables: Subreddit, Submission, Comment.
+    Drops and creates the following tables: Subreddit, Submission, and Comment.
 
     Args:
         None
 
     Returns:
         None
+
     """
     # Connect to the database
     try:
-        connection = pymysql.connect(host = 'localhost',
+        connection = pymysql.connect(host = HOST,
                                     user = DB_USER,
                                     password = DB_PASSWORD,
-                                    db = DBNAME,
-                                    charset = 'utf8mb4',
+                                    db = DB,
+                                    charset = CHARSET,
                                     cursorclass = pymysql.cursors.DictCursor)
         cursor = connection.cursor()
     except Exception as e:
@@ -78,10 +65,10 @@ def db_setup():
     ### CREATE TABLES ###
 
     # Create Subreddit table
-    # Can view columns in CL using 'SHOW COLUMNS FROM Subreddit;'
     try:
         statement = """
         CREATE TABLE Subreddit(
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             display_name VARCHAR(100) NOT NULL,
@@ -98,10 +85,21 @@ def db_setup():
     # Create Submission table
     try:
         statement = """
+
         CREATE TABLE Submission(
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
-            title VARCHAR(100) NOT NULL,
-            author_name VARCHAR(100) NOT NULL
+            subreddit_id VARCHAR(100) NOT NUll,
+            author VARCHAR(100) NOT NULL,
+            created_utc VARCHAR(100) NOT NULL,
+            is_original_content BOOLEAN NOT NULL,
+            locked BOOLEAN NOT NULL,
+            name VARCHAR(100),
+            title VARCHAR(100),
+            num_comments INT NOT NULL,
+            score INT NOT NULL,
+            permalink VARCHAR(100) NOT NULL,
+            retrieved TIMESTAMP NOT NULL
         );
         """
         cursor.execute(statement)
@@ -114,11 +112,18 @@ def db_setup():
     try:
         statement = """
         CREATE TABLE Comment(
+            insert_update_ts TIMESTAMP,
             id VARCHAR(100) PRIMARY KEY,
-            commentor_id VARCHAR(100) NOT NULL,
-            body_text VARCHAR(500) NOT NULL
+            link_id VARCHAR(100) NOT NULL,
+            subreddit_name VARCHAR(100) NOT NULL,
+            author VARCHAR(100) NOT NULL,
+            body BLOB NOT NULL,
+            score INT NOT NULL,
+            permalink VARCHAR(100) NOT NULL,
+            retrieved TIMESTAMP NOT NULL
         );
         """
+        #* link_id = submission_id
         cursor.execute(statement)
         connection.commit()
     except Exception as e:
@@ -127,5 +132,3 @@ def db_setup():
 
 if __name__ == "__main__":
     db_setup()
-
-# FROM CL, can log into DB using 'mysql -u bryan -p testdb'
