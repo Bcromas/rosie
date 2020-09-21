@@ -4,13 +4,14 @@ bert/
 # Secrets file
 secrets.*
 
-# File types
+# Data dir & file types
 *.csv
 *.tsv
 *.txt
 *.xls
 *.xlsx
 *.pdf
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
